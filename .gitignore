@@ -31,3 +31,10 @@ external/
 # 杂项 / 备份资产
 pic/*.dataless_backup.png
 pic/dtmf.pdf
+
+# 未被幻灯片引用的素材（仅本地保留，不进仓库）
+pic/raw_assets/
+pic/*_page.png
+pic/matanyone2_teaser.jpg
+pic/final/slides/*_16x9.png
+pic/final/slides/*_crop.png
