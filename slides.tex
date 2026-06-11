@@ -1,0 +1,771 @@
+% !TeX program = xelatex
+% !BIB program = bibtex
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage{ctex}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{array,booktabs,tabularx,multirow}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,fit,positioning,shapes.geometric,shapes.misc,backgrounds,shadows.blur}
+
+\usepackage{NankaiBeamer}
+
+\AtBeginSection[]{}
+\AtBeginSubsection[]{}
+\setbeamersize{text margin left=6mm,text margin right=6mm}
+\setbeamertemplate{navigation symbols}{}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\urlstyle{same}
+
+\author[梁景铭、史傅冠华、张竣翔]{梁景铭、史傅冠华、张竣翔}
+\title[PromptMatte]{PromptMatte}
+\subtitle{基于视觉基础模型融合的文本驱动零训练精细抠图与换背景系统}
+\institute[计算机视觉大作业课程汇报]{课程：计算机视觉\\指导教师：范登平}
+\date{2026年6月}
+
+\definecolor{accentblue}{RGB}{49,101,184}
+\definecolor{softgreen}{RGB}{88,150,91}
+\definecolor{softorange}{RGB}{222,132,61}
+\definecolor{softgray}{RGB}{92,92,92}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{halfgray}{gray}{0.55}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries\color{deepblue},
+  emphstyle=\ttfamily\color{deepred},
+  stringstyle=\color{deepgreen},
+  numbers=left,
+  numberstyle=\small\color{halfgray},
+  rulesepcolor=\color{red!20!green!20!blue!20},
+  commentstyle=\color{softgreen},
+  frame=shadowbox,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\tikzset{
+  flow/.style={rounded corners=2pt, draw=nankai!80, very thick, fill=nankai!8, align=center, inner sep=5pt},
+  minor/.style={rounded corners=2pt, draw=black!35, thick, fill=black!3, align=center, inner sep=4pt},
+  good/.style={rounded corners=2pt, draw=softgreen!70!black, thick, fill=softgreen!10, align=left, inner sep=4pt},
+  warn/.style={rounded corners=2pt, draw=softorange!80!black, thick, fill=softorange!12, align=left, inner sep=4pt},
+  accent/.style={rounded corners=2pt, draw=accentblue!80!black, thick, fill=accentblue!10, align=center, inner sep=4pt},
+  arr/.style={-{Latex[length=2.5mm]}, thick, nankai}
+}
+
+\newcommand{\pill}[2][nankai]{%
+  \tikz[baseline=-0.6ex]\node[rounded corners=3pt, draw=#1!75!black, fill=#1!12, inner xsep=5pt, inner ysep=2pt]{\scriptsize #2};%
+}
+\newcommand{\hilite}[1]{\textcolor{nankai}{\textbf{#1}}}
+\newcommand{\alphabox}[2]{%
+  \fcolorbox{nankai!55}{nankai!4}{%
+    \parbox[c][0.72cm][c]{0.28\linewidth}{\centering\scriptsize\textbf{#1}\\[-0.05em]#2}}}
+\newcommand{\demoimagepanel}[3]{%
+  \begin{minipage}[t]{0.48\linewidth}
+    \centering
+    \IfFileExists{#1}{%
+      \includegraphics[width=\linewidth,height=0.14\textheight,keepaspectratio]{#1}%
+    }{%
+      \fcolorbox{#3!75!black}{#3!8}{%
+        \parbox[c][0.14\textheight][c]{0.9\linewidth}{\centering\scriptsize #2}%
+      }%
+    }\\[-0.2em]
+    {\scriptsize #2}
+  \end{minipage}%
+}
+
+% ---------- unified polished card / note / metric helpers ----------
+\tikzset{
+  softcardsh/.style={blur shadow={shadow blur steps=5, shadow xshift=0.4pt,
+                     shadow yshift=-0.6pt, shadow opacity=24, shadow blur radius=1.7pt}}
+}
+\newcommand{\cardhead}[2]{{\bfseries\color{#1!88!black}#2}\\[2.4pt]}
+% \tcard{accent}{height}{title}{body}
+\newcommand{\tcard}[4]{%
+  \begin{tikzpicture}[baseline=(tc.north)]
+    \node[softcardsh, rounded corners=4pt, draw=#1!62!black, line width=0.8pt, fill=#1!7,
+      inner sep=6pt, align=left, anchor=north,
+      text width=\dimexpr\linewidth-18pt\relax, minimum height=#2]
+      (tc) at (0,0) {\cardhead{#1}{#3}\scriptsize #4};
+  \end{tikzpicture}%
+}
+% \notestrip{accent}{body}  -- full-width rounded soft note
+\newcommand{\notestrip}[2]{%
+  \begin{tikzpicture}[baseline=(ns.north)]
+    \node[rounded corners=4pt, draw=#1!50!black, line width=0.8pt, fill=#1!6,
+      inner sep=6pt, align=left, anchor=north,
+      text width=\dimexpr\linewidth-18pt\relax]
+      (ns) at (0,0) {#2};
+  \end{tikzpicture}%
+}
+% \ccard{accent}{height}{centered-body}
+\newcommand{\ccard}[3]{%
+  \begin{tikzpicture}[baseline=(cc.north)]
+    \node[softcardsh, rounded corners=4pt, draw=#1!58!black, line width=0.8pt, fill=#1!6,
+      inner sep=5pt, align=center, anchor=north,
+      text width=\dimexpr\linewidth-16pt\relax, minimum height=#2]
+      (cc) at (0,0) {#3};
+  \end{tikzpicture}%
+}
+% \mpill[accent]{label}{value} -- prominent inline metric badge (for case slides)
+\newcommand{\mpill}[3][nankai]{%
+  \tikz[baseline=-0.75ex]\node[softcardsh, rounded corners=4pt, draw=#1!68!black, fill=#1!13,
+    line width=0.8pt, inner xsep=7pt, inner ysep=3.4pt]
+    {\footnotesize #2~\textbf{\textcolor{#1!72!black}{#3}}};%
+}
+% \metricchip{accent}{label}{value}
+\newcommand{\metricchip}[3]{%
+  \begin{tikzpicture}[baseline=(mc.north)]
+    \node[softcardsh, rounded corners=4pt, draw=#1!58!black, line width=0.9pt, fill=#1!9,
+      inner sep=5pt, align=center, anchor=north,
+      text width=\dimexpr\linewidth-16pt\relax, minimum height=1.02cm]
+      (mc) at (0,0) {\scriptsize #2\\[2pt]{\bfseries\normalsize\color{#1!72!black}#3}};
+  \end{tikzpicture}%
+}
+
+\begin{document}
+\kaishu
+
+\begin{frame}
+  \titlepage
+  \vspace{-1.1em}
+  \begin{figure}[htpb]
+    \begin{center}
+      \includegraphics[width=0.10\linewidth]{pic/Nankai_Logo.pdf}
+    \end{center}
+  \end{figure}
+  \vspace{-1.05em}
+  \begin{center}
+    {\footnotesize 项目主页 \& 代码：\href{https://github.com/eprogressing/computer-vision}{\textcolor{nankai}{\texttt{github.com/eprogressing/computer-vision}}}}
+  \end{center}
+\end{frame}
+
+\section{背景介绍}
+\begin{frame}[t]{1. 研究背景与目标}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \begin{block}{什么是抠图与换背景}
+    图像 / 视频抠图的目标，是在复杂场景中 \hilite{分离目标前景} 并估计头发、毛发、玻璃等区域的 \hilite{软边界 alpha}，进而支持 \hilite{背景替换}、\hilite{背景虚化} 与海报合成。
+
+    \vspace{0.16em}
+    \centering
+    $\mathrm{PromptMatte}(\mathcal{I}, t)\rightarrow \alpha^\star \in [0,1]^{H\times W},\qquad C=\alpha^\star F+\bigl(1-\alpha^\star\bigr)B$
+  \end{block}
+  \vspace{-0.28em}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.5\textwidth}
+      \begin{block}{选题依据与现有问题}
+        \textbf{为什么选这个课题：}覆盖电商、人像修图、短视频换背景与海报合成，结果直观，且贯穿 \hilite{目标定位}、\hilite{精细 matting} 与 \hilite{结果合成}。
+
+        \vspace{0.1em}
+        \textbf{现有方法的问题：}传统 matting 依赖 \hilite{trimap}、人工交互或专门训练，复现成本高；SAM 系列能定位目标，却只输出 \hilite{粗二值 mask}，难处理头发与透明边缘。
+      \end{block}
+    \column{0.5\textwidth}
+      \begin{block}{效果示意}
+        \centering
+        \begin{minipage}[t]{0.485\linewidth}
+          \centering
+          \includegraphics[width=\linewidth,height=0.092\textheight,keepaspectratio]{pic/demo_original.png}\\[-0.08em]
+          原图
+        \end{minipage}\hfill
+        \begin{minipage}[t]{0.485\linewidth}
+          \centering
+          \includegraphics[width=\linewidth,height=0.092\textheight,keepaspectratio]{pic/demo_sam_mask.png}\\[-0.08em]
+          粗分割结果
+        \end{minipage}
+        \vspace{0.06em}
+
+        \begin{minipage}[t]{0.485\linewidth}
+          \centering
+          \includegraphics[width=\linewidth,height=0.092\textheight,keepaspectratio]{pic/demo_zim_alpha.png}\\[-0.08em]
+          精细 alpha
+        \end{minipage}\hfill
+        \begin{minipage}[t]{0.485\linewidth}
+          \centering
+          \includegraphics[width=\linewidth,height=0.092\textheight,keepaspectratio]{pic/demo_composite.png}\\[-0.08em]
+          背景替换结果
+        \end{minipage}
+        \vspace{0.06em}
+
+        从左上到右下：输入图像、SAM 粗分割、精细 alpha、换背景结果。
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\section{问题定义}
+\begin{frame}[t]{2. 任务流程与关键挑战}
+  \footnotesize
+  \linespread{0.94}\selectfont
+  \begin{columns}[t,onlytextwidth]
+    \column{0.55\textwidth}
+      \begin{block}{输入输出流程与 Trimap}
+        \centering
+        \resizebox{0.98\linewidth}{!}{%
+        \begin{tikzpicture}[node distance=0.6cm]
+          \node[flow, minimum width=2.35cm, minimum height=0.92cm] (inp) {\textbf{图像 / 视频}\\文本提示};
+          \node[warn, minimum width=1.95cm, minimum height=0.92cm, right=of inp] (sam) {\textbf{SAM 粗分割}\\文本驱动定位};
+          \node[good, minimum width=1.75cm, minimum height=0.92cm, right=of sam] (zim) {\textbf{ZIM alpha}\\精细边界估计};
+          \node[accent, minimum width=2.4cm, minimum height=0.92cm, right=of zim] (out) {\textbf{RGBA / 换背景}\\\textbf{/ 视频合成}};
+          \draw[arr] (inp) -- (sam);
+          \draw[arr] (sam) -- (zim);
+          \draw[arr] (zim) -- (out);
+        \end{tikzpicture}}
+
+        \vspace{0.5em}
+        \raggedright\scriptsize 先 \hilite{粗定位}，再把二值 mask 细化为 \hilite{软 alpha}；图像输出 $\alpha^\star$ / RGBA / 换背景图，视频输出逐帧 alpha 与合成视频。
+
+        \vspace{0.7em}
+        \centering
+        \resizebox{0.8\linewidth}{!}{%
+        \begin{tikzpicture}[x=1cm,y=1cm]
+          \fill[black] (0,0) rectangle (1.7,0.8);
+          \fill[black!45] (1.7,0) rectangle (4.0,0.8);
+          \fill[white] (4.0,0) rectangle (5.7,0.8);
+          \draw[black!55, thick] (0,0) rectangle (5.7,0.8);
+          \draw[black!55, thick] (1.7,0) -- (1.7,0.8);
+          \draw[black!55, thick] (4.0,0) -- (4.0,0.8);
+        \end{tikzpicture}}
+        \par\vspace{0.2em}
+        {\scriptsize Trimap —— 黑：背景 \quad 灰：不确定边界 \quad 白：前景}
+      \end{block}
+    \column{0.45\textwidth}
+      \begin{block}{关键挑战与策略}
+        \begin{itemize}
+          \setlength{\itemsep}{0.55em}
+          \item \textbf{开放词汇定位：}目标不只限于人，也含宠物、商品、玻璃杯等；
+          \item \textbf{精细边界：}头发、毛发、半透明、细结构都不是硬二值边界；
+          \item \textbf{零训练限制：}不能依赖大量 GPU 重新训练；
+          \item \textbf{视频稳定性：}要避免 $\alpha$ 抖动与边界闪烁。
+        \end{itemize}
+
+        \vspace{0.6em}
+        \textbf{策略：}不训练大模型，复用开源推理链路并自研 \hilite{边界优化与时序平滑}，形成 \hilite{定位—alpha—合成} 闭环。
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\section{方法实现}
+\begin{frame}[t]{3. 相关模块与系统动机}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \begin{columns}[t,onlytextwidth]
+    \column{0.33\textwidth}
+      \begin{block}{A. 开放词汇粗分割}
+        \centering
+        \includegraphics[width=0.92\linewidth,height=0.095\textheight,keepaspectratio]{pic/ext/grounded_sam_2_intro.jpg}
+
+        \scriptsize
+        SAM2 / SAM3 / Grounded-SAM-2 负责 \hilite{目标定位与初始分割}，为后续 bbox / points 提供入口。
+      \end{block}
+    \column{0.33\textwidth}
+      \begin{block}{B. 图像 Matting}
+        \centering
+        \includegraphics[width=0.92\linewidth,height=0.095\textheight,keepaspectratio]{pic/ext/teaser_arxiv_v2.png}
+
+        \scriptsize
+        ZIM 作为最终图像 matting 主线，将粗定位细化为 \hilite{软 alpha}；MAM 仅作为相关方法参考。
+      \end{block}
+    \column{0.34\textwidth}
+      \begin{block}{C. 视频与应用}
+        \centering
+        \includegraphics[width=0.92\linewidth,height=0.095\textheight,keepaspectratio]{pic/ext/matanyone2_teaser.jpg}
+
+        \scriptsize
+        MatAnyone2 用于 \hilite{人像视频 matting}；OpenCV 支持背景替换与背景虚化，作为系统应用展示。
+      \end{block}
+  \end{columns}
+  \vspace{0.1em}
+
+  \begin{block}{系统串联逻辑}
+    \scriptsize
+    A、B、C 依次回答“\hilite{目标是谁、在哪}”“\hilite{边界是否够精细}”“\hilite{系统能否演示}”：A 提供稳定的 bbox / points 入口，B 输出可合成的软 alpha，C 延伸到视频合成与背景替换；最终三者串联，并补充 \hilite{候选 mask 选择}、\hilite{边界优化} 与 \hilite{时序稳定} 等工程模块。
+  \end{block}
+\end{frame}
+
+\begin{frame}[t]{4. 系统实现与方法总览}
+  \footnotesize
+  \linespread{0.91}\selectfont
+  \begin{block}{总体流程}
+    \centering
+    \resizebox{0.95\linewidth}{!}{%
+    \begin{tikzpicture}[
+      node distance=4mm and 4mm,
+      open/.style={rounded corners=2pt, draw=black!45, thick, fill=black!3, align=center, inner sep=4pt},
+      ours/.style={rounded corners=2pt, draw=nankai!90!black, very thick, fill=nankai!14, align=center, inner sep=4pt},
+      tag/.style={font=\bfseries\small, text=nankai}
+    ]
+      \node[tag, anchor=west] at (-0.2,1.55) {主线：图像文本分支};
+
+      \node[open, minimum width=1.5cm, minimum height=0.88cm] (text) at (0,0.55) {文本\\提示};
+      \node[open, right=of text, minimum width=1.9cm, minimum height=0.88cm] (sam) {SAM2 / SAM3\\Grounded-SAM-2};
+      \node[open, right=of sam, minimum width=1.35cm, minimum height=0.88cm] (cand) {Candidate\\Masks};
+      \node[ours, right=of cand, minimum width=1.95cm, minimum height=0.88cm] (rerank) {Prompt Ensemble\\+ Mask Rerank};
+      \node[ours, right=of rerank, minimum width=1.9cm, minimum height=0.88cm] (auto) {Auto bbox/points\\+ trimap};
+      \node[open, right=of auto, minimum width=1.35cm, minimum height=0.88cm] (mat) {ZIM\\alpha};
+      \node[ours, right=of mat, minimum width=1.95cm, minimum height=0.88cm] (fusion) {Flip TTA + GF\\+ BSP};
+      \node[ours, right=of fusion, minimum width=1.9cm, minimum height=0.88cm] (compose) {RGBA / Blur BG\\ / Replace BG};
+
+      \draw[arr] (text) -- (sam);
+      \draw[arr] (sam) -- (cand);
+      \draw[arr] (cand) -- (rerank);
+      \draw[arr] (rerank) -- (auto);
+      \draw[arr] (auto) -- (mat);
+      \draw[arr] (mat) -- (fusion);
+      \draw[arr] (fusion) -- (compose);
+
+      \node[tag, anchor=west] at (2.25,-0.9) {视频支线：首帧结果驱动时序一致性};
+      \node[open, minimum width=1.75cm, minimum height=0.88cm] (ff) at (2.35,-1.9) {First-frame Mask\\from image branch};
+      \node[open, right=of ff, minimum width=1.45cm, minimum height=0.88cm] (matany) {MatAnyone2};
+      \node[open, right=of matany, minimum width=1.45cm, minimum height=0.88cm] (avideo) {Alpha\\Video};
+      \node[ours, right=of avideo, minimum width=1.9cm, minimum height=0.88cm] (ts) {Boundary-only\\Temporal Smoothing};
+      \node[ours, right=of ts, minimum width=1.75cm, minimum height=0.88cm] (vcomp) {Video\\Composition};
+
+      \draw[arr,densely dashed] (fusion.south) |- (ff.north);
+      \draw[arr] (ff) -- (matany);
+      \draw[arr] (matany) -- (avideo);
+      \draw[arr] (avideo) -- (ts);
+      \draw[arr] (ts) -- (vcomp);
+    \end{tikzpicture}}
+
+    \vspace{0.15em}
+    {\scriptsize 灰框表示开源模型或现成推理模块，紫框表示团队自研模块；Flip TTA + GF + BSP 对应 ZIM 精细抠图优化链路。}
+  \end{block}
+
+  \vspace{-0.3em}
+  \begin{block}{团队实现模块与最终目标}
+    \scriptsize
+    \textbf{团队自研模块：}
+    \texttt{prompt\_ensemble.py}、\texttt{mask\_rerank.py}、\texttt{auto\_prompt.py / trimap.py}
+
+    \texttt{final\_claim\_pipeline.py}、\texttt{box\_prior\_pipeline.py}、\texttt{composer\_demo.py}、\texttt{temporal\_smooth.py}
+
+    \vspace{0.05em}
+    \textbf{最终实现目标：}
+    保持 \hilite{zero-training} 设定，整合粗定位、精细 alpha、背景编辑与视频稳定，并在 MicroMat official-prompt 评估中验证 ZIM 后端优化。
+  \end{block}
+\end{frame}
+
+% ===== 队友占位章节：上游开放词汇分割（史傅冠华）=====
+\input{sections/sam.tex}
+
+\section{精细抠图与实验}
+\begin{frame}[t]{5. 从粗分割到精细 Alpha}
+  \footnotesize
+  \linespread{0.93}\selectfont
+  \begin{columns}[T,onlytextwidth]
+    \column{0.32\textwidth}
+      \tcard{softgray}{2.55cm}{1. 上游定位}{%
+        SAM2 / SAM3~{\scriptsize[1,\,2]} 更擅长回答“目标在哪里”，输出接近二值 mask：
+        \[ M(x)\in\{0,1\}. \]
+        边界处容易硬切，难以直接用于换背景。}
+    \column{0.34\textwidth}
+      \tcard{softorange}{2.55cm}{2. 统一 prompt}{%
+        把粗定位转成 bbox / points，让后端 matting 共用同一套输入接口：
+        \[ b=[x_1,y_1,x_2,y_2]. \]
+        该步骤只界定空间范围，不生成最终 alpha。}
+    \column{0.34\textwidth}
+      \tcard{nankai}{2.55cm}{3. 精细 matting}{%
+        ZIM 输出连续透明度：
+        \[ \alpha(x)\in[0,1],\quad C=\alpha F+(1-\alpha)B. \]
+        alpha 才能刻画毛边、透明与半透明边界。}
+  \end{columns}
+
+  \vspace{0.5em}
+  \centering
+  \resizebox{0.96\linewidth}{!}{%
+  \begin{tikzpicture}[
+    >={Latex[length=3mm,width=2.4mm]},
+    node distance=7mm,
+    every node/.style={font=\footnotesize},
+    pcard/.style={softcardsh, rounded corners=3pt, line width=1pt, align=center, inner sep=5pt,
+                  minimum width=2.45cm, minimum height=1.0cm},
+    pgray/.style={pcard, draw=softgray!70!black, fill=softgray!10},
+    porange/.style={pcard, draw=softorange!85!black, fill=softorange!16},
+    ppurple/.style={pcard, draw=nankai!88!black, fill=nankai!14},
+    pgreen/.style={pcard, draw=softgreen!72!black, fill=softgreen!15},
+    pblue/.style={pcard, draw=accentblue!85!black, fill=accentblue!15},
+    parrow/.style={-{Latex[length=2.8mm,width=2.3mm]}, line width=1.3pt, draw=nankai!80!black}
+  ]
+    \node[pgray] (sam) {\textbf{SAM2 / SAM3}\\[1pt]{\scriptsize 粗 mask}};
+    \node[porange, right=of sam] (bbox) {\textbf{bbox / points}\\[1pt]{\scriptsize 标准接口}};
+    \node[ppurple, right=of bbox] (zim) {\textbf{ZIM ViT-B}\\[1pt]{\scriptsize official bbox}};
+    \node[pgreen, right=of zim] (ours) {\textbf{TTA-GF + BSP}\\[1pt]{\scriptsize 后端 refinement}};
+    \node[pblue, right=of ours] (rgba) {\textbf{RGBA / Composer}\\[1pt]{\scriptsize 应用输出}};
+    \draw[parrow] (sam) -- (bbox);
+    \draw[parrow] (bbox) -- (zim);
+    \draw[parrow] (zim) -- (ours);
+    \draw[parrow] (ours) -- (rgba);
+  \end{tikzpicture}}
+
+  \vspace{0.45em}
+  \notestrip{nankai}{\centering\scriptsize
+  \textbf{关键转折：}SAM 系列负责\hilite{定位}，ZIM 负责从同一 bbox prompt 估计\hilite{软 alpha}；后续优化只改推理后处理，\hilite{不重新训练模型}。}
+\end{frame}
+
+\begin{frame}[t]{6. ZIM 的基本原理}
+  \scriptsize
+  \linespread{0.90}\selectfont
+  \begin{block}{ZIM: Zero-Shot Image Matting for Anything}
+    ZIM~{\scriptsize[5]} 面向零样本 matting：保留 SAM 式 \hilite{图像 + point / box prompt} 交互，但输出从二值 mask 变为连续的 \hilite{soft matte}，用于表达边缘像素中“前景占多少”。
+  \end{block}
+
+  \vspace{-0.18em}
+  \centering
+  \fcolorbox{black!25}{white}{%
+  \includegraphics[width=0.98\linewidth,height=0.325\textheight,keepaspectratio]{pic/zim_method_overview.png}}
+
+  \vspace{-0.05em}
+  {\tiny Figure source: ZIM official project / Kim et al., \emph{ZIM: Zero-Shot Image Matting for Anything}, ICCV 2025.}
+
+  \vspace{0.12em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.245\textwidth}
+      \tcard{nankai}{1.45cm}{1. 输入图像与提示}{原图提供外观信息；点 / 框提示指定模型关注的目标位置。}
+    \column{0.255\textwidth}
+      \tcard{softorange}{1.45cm}{2. 提取两类特征}{图像编码器提取视觉特征；提示编码器把点 / 框转成提示特征与注意力掩码。}
+    \column{0.255\textwidth}
+      \tcard{softgreen}{1.45cm}{3. 提示引导解码}{解码器融合图像与提示特征，并借掩码注意力聚焦目标区域。}
+    \column{0.245\textwidth}
+      \tcard{accentblue}{1.45cm}{4. 输出 soft matte}{像素解码器融合多尺度特征并逐步上采样，得到连续 soft matte。}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{7. 优化一：PromptMatte-TTA-GF}
+  \footnotesize
+  \linespread{0.92}\selectfont
+
+  \notestrip{deepred}{\scriptsize
+  ZIM 的单次 alpha 预测在边界处容易受到视角方向和局部纹理影响。PromptMatte-TTA-GF 将这个缺口建模为 \hilite{提示保持的等变一致性 ＋ 图像边缘投影}（Guided Filter~{\scriptsize[8]}），在不更新权重的情况下细化边界。}
+
+  \vspace{0.04em}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[
+    x=1cm, y=1cm,
+    >={Latex[length=3mm,width=2.4mm]},
+    every node/.style={font=\scriptsize},
+    softsh/.style={blur shadow={shadow blur steps=6, shadow xshift=0.5pt,
+                   shadow yshift=-0.7pt, shadow opacity=32, shadow blur radius=2pt}},
+    nodebase/.style={softsh, rounded corners=3pt, line width=1pt, align=center, inner sep=5pt},
+    io/.style={nodebase, draw=black!50, fill=black!5, line width=0.9pt},
+    net/.style={nodebase, draw=nankai!85!black, fill=nankai!13},
+    amap/.style={nodebase, draw=accentblue!82!black, fill=accentblue!14},
+    flipb/.style={nodebase, draw=softorange!85!black, fill=softorange!17},
+    fuse/.style={nodebase, draw=nankai!90!black, fill=nankai!18},
+    gfilt/.style={nodebase, draw=softgreen!72!black, fill=softgreen!17},
+    sumop/.style={softsh, circle, draw=nankai!90!black, line width=1.1pt, fill=nankai!16, inner sep=2.2pt},
+    pipe/.style={-{Latex[length=2.8mm,width=2.3mm]}, line width=1.3pt, draw=nankai!80!black, rounded corners=2.5pt},
+    guide/.style={-{Latex[length=2.6mm,width=2.1mm]}, line width=1.05pt,
+                  draw=softgreen!62!black, dash pattern=on 3.2pt off 2.2pt},
+    tab/.style={softsh, rounded corners=3pt, inner xsep=6pt, inner ysep=2.6pt, font=\tiny\bfseries}
+  ]
+    % ---- top branch: original prediction ----
+    \node[io,   minimum width=1.78cm, minimum height=0.76cm] (orig) at (1.05,2.05) {\textbf{Original}\\$(\mathcal{I},b)$};
+    \node[net,  minimum width=1.26cm, minimum height=0.76cm] (zim0) at (3.30,2.05) {\textbf{ZIM}\\$f_\theta$};
+    \node[amap, minimum width=1.02cm, minimum height=0.76cm] (a0)   at (5.10,2.05) {\footnotesize$\alpha_0$};
+
+    % ---- bottom branch: flip-equivariant prediction ----
+    \node[io,    minimum width=1.78cm, minimum height=0.76cm] (flip) at (1.05,0.55) {\textbf{Flip}\\$(F(\mathcal{I}),F(b))$};
+    \node[net,   minimum width=1.26cm, minimum height=0.76cm] (zim1) at (3.30,0.55) {\textbf{ZIM}\\$f_\theta$};
+    \node[flipb, minimum width=1.32cm, minimum height=0.76cm] (fb)   at (5.20,0.55) {\textbf{Flip back}\\$F^{-1}$};
+    \node[amap,  minimum width=1.02cm, minimum height=0.76cm] (a1)   at (7.05,0.55) {\footnotesize$\alpha_1$};
+
+    % ---- fusion + edge-aware projection ----
+    \node[sumop] (merge) at (8.35,1.30) {\footnotesize$\boldsymbol{+}$};
+    \node[fuse,  minimum width=1.55cm, minimum height=0.84cm] (avg)    at (10.65,1.30) {\textbf{Average}\\$\alpha_T$};
+    \node[gfilt, minimum width=1.84cm, minimum height=0.84cm] (filter) at (13.05,1.30) {\textbf{Guided Filter}\\{\tiny RGB guidance}};
+    \node[amap,  minimum width=1.48cm, minimum height=0.84cm, fill=accentblue!20,
+          draw=accentblue!90!black, line width=1.2pt] (out) at (15.40,1.30) {\textbf{Output}\\$\alpha_G$};
+
+    % ---- pipeline arrows ----
+    \draw[pipe] (orig) -- (zim0);
+    \draw[pipe] (zim0) -- (a0);
+    \draw[pipe] (flip) -- (zim1);
+    \draw[pipe] (zim1) -- (fb);
+    \draw[pipe] (fb)   -- (a1);
+    \draw[pipe] (a0.east) -| (merge.north);
+    \draw[pipe] (a1.east) -| (merge.south);
+    \draw[pipe] (merge) -- (avg);
+    \draw[pipe] (avg) -- (filter);
+    \draw[pipe] (filter) -- (out);
+
+    % ---- edge guidance: original RGB image guides the filter ----
+    \draw[guide] (orig.north) .. controls (5.6,2.55) and (11.0,3.5) ..
+      node[pos=0.55, fill=white, fill opacity=0.92, text opacity=1, rounded corners=2pt,
+           inner xsep=3pt, inner ysep=1.6pt, text=softgreen!58!black, font=\tiny\bfseries] {edge guidance}
+      (filter.north);
+
+    % ---- phase grouping bands (drawn behind everything) ----
+    \begin{scope}[on background layer]
+      \node[fit=(orig)(flip)(a1)(merge), rounded corners=7pt,
+            draw=nankai!45, line width=1pt, fill=nankai!5, inner sep=10pt] (grpA) {};
+      \node[fit=(avg)(out), rounded corners=7pt,
+            draw=softgreen!52!black, line width=1pt, fill=softgreen!6, inner sep=10pt] (grpB) {};
+    \end{scope}
+
+    % ---- phase tab labels sitting just above the band borders ----
+    \node[tab, draw=nankai!58, fill=nankai!14, text=nankai!90!black, anchor=south west]
+      at ([xshift=10pt,yshift=-1.5pt]grpA.north west) {翻转等变一致性 · Flip consistency};
+    \node[tab, draw=softgreen!58!black, fill=softgreen!15, text=softgreen!52!black, anchor=south east]
+      at ([xshift=-10pt,yshift=-1.5pt]grpB.north east) {边缘感知投影 · Edge-aware projection};
+  \end{tikzpicture}}
+
+  \vspace{0.12em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.30\textwidth}
+      \ccard{accentblue}{1.04cm}{%
+      {\scriptsize\textbf{\textcolor{accentblue!85!black}{Original prediction}}}\\[1pt]
+      {\fontsize{7.6}{8.2}\selectfont $\alpha_0=f_\theta(\mathcal{I},b)$}\\[1pt]
+      {\tiny 原图分支的 soft matte}}
+    \column{0.40\textwidth}
+      \ccard{nankai}{1.04cm}{%
+      {\scriptsize\textbf{\textcolor{nankai!88!black}{Flip-consistent estimate}}}\\[1pt]
+      {\fontsize{7.4}{8.0}\selectfont $\alpha_1=F^{-1}\!\left(f_\theta(F(\mathcal{I}),F(b))\right),\quad \alpha_T=\tfrac{\alpha_0+\alpha_1}{2}$}\\[1pt]
+      {\tiny 对齐后平均，降低方向敏感误差}}
+    \column{0.30\textwidth}
+      \ccard{softgreen}{1.04cm}{%
+      {\scriptsize\textbf{\textcolor{softgreen!60!black}{Edge-aware projection}}}\\[1pt]
+      {\fontsize{7.6}{8.2}\selectfont $\alpha_G=\mathrm{GF}(\mathcal{I},\alpha_T)$}\\[1pt]
+      {\tiny RGB guidance 保边平滑}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{8. 优化二：Box-Support Prior}
+  \footnotesize
+  \linespread{0.92}\selectfont
+
+  \notestrip{nankai}{\scriptsize
+  \textbf{动机：}TTA-GF 之后，少数样本仍会在 official bbox 之外出现轻微 alpha 泄漏。\hilite{Box-Support Prior（BSP）} 以检测框作为空间先验，对框外做温和抑制——一项\hilite{保守的稳定化后处理}。}
+
+  \vspace{0.2em}
+  \centering
+  \includegraphics[width=\linewidth,height=0.345\textheight,keepaspectratio]{pic/final/slides/06_box_support_prior_cards.png}
+
+  \vspace{0.24em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.34\textwidth}
+      \tcard{softorange}{1.55cm}{bbox support map}{%
+        official bbox 作为空间支持：框内保留、框外温和抑制。\par\vspace{2pt}%
+        {\centering$G(x)=S(x)+\bigl(1-S(x)\bigr)\eta$\par}}
+    \column{0.34\textwidth}
+      \tcard{nankai}{1.55cm}{alpha re-weight}{%
+        对 TTA-GF 输出轻量重加权，抑制框外泄漏：\par\vspace{2pt}%
+        {\centering$\alpha_B(x)=\alpha_G(x)\bigl(1-\lambda+\lambda G(x)\bigr)$\par}}
+    \column{0.32\textwidth}
+      \tcard{softgreen}{1.55cm}{稳定化效果}{%
+        框外泄漏被进一步抑制、主体边界更稳定；作为 TTA-GF 之上的轻量补充，整体更稳健。}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{9. valid706 主表结果}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+      \notestrip{softgray}{\scriptsize
+      \textbf{数据集 · valid706：}取自 MicroMat 验证集中带 \emph{official text prompt} 的 \textbf{706} 张图像子集；每张都配有官方 bbox / points 提示与高质量 GT alpha，便于在\hilite{统一提示输入}下做公平、可复现的对比。}
+    \column{0.5\textwidth}
+      \notestrip{softgray}{\scriptsize
+      \textbf{评测方法：}baseline 与各优化方法均使用\hilite{同一 official bbox}推理，再用同一脚本统一评分（Composer demo 不计入）；四项指标均\hilite{越低越好}（$\downarrow$）。}
+  \end{columns}
+
+  \vspace{0.04em}
+  {\centering
+  \scriptsize
+  \setlength{\tabcolsep}{3.5pt}
+  \renewcommand{\arraystretch}{1.0}
+  \resizebox{0.97\linewidth}{!}{%
+  \begin{tabular}{lrrrr}
+    \toprule
+    Method & SAD $\downarrow$ & MSE $\downarrow$ & MAE$_{\times1000}\downarrow$ & Boundary SAD $\downarrow$ \\
+    \midrule
+    ZIM bbox baseline & 2.320107 & 0.000579536 & 0.825480 & 0.736623 \\
+    PromptMatte-TTA-GF & 2.123826 & 0.000445816 & 0.753268 & 0.638556 \\
+    \textbf{PromptMatte-TTA-GF+BSP} & \textbf{2.122658} & \textbf{0.000445414} & \textbf{0.752814} & \textbf{0.638283} \\
+    \bottomrule
+  \end{tabular}}\par}
+
+  \vspace{0.5em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.24\textwidth}
+      \metricchip{softgreen}{SAD\,$\downarrow$\\{\tiny 绝对误差和}}{$-8.51\%$}
+    \column{0.24\textwidth}
+      \metricchip{softgreen}{MSE\,$\downarrow$\\{\tiny 均方误差}}{$-23.14\%$}
+    \column{0.24\textwidth}
+      \metricchip{softgreen}{MAE$_{\times1000}$\,$\downarrow$\\{\tiny 平均绝对误差}}{$-8.80\%$}
+    \column{0.28\textwidth}
+      \metricchip{nankai}{Boundary SAD\,$\downarrow$\\{\tiny 边界带误差}}{$-13.35\%$}
+  \end{columns}
+
+  \vspace{0.06em}
+  \notestrip{nankai}{\scriptsize
+  \textbf{结论：}我们的方法（PromptMatte-TTA-GF\,+\,BSP）在 SAD、MSE、MAE、Boundary SAD \hilite{四项指标上全面优于 ZIM bbox baseline}。}
+\end{frame}
+
+\begin{frame}[t,label=vis-car]{10. 可视化案例一：整车目标}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \centering
+  \includegraphics[width=0.98\linewidth,height=0.55\textheight,keepaspectratio]{pic/final/clean/01_0100_1_clean_comparison.png}
+
+  \vspace{0.36em}
+  \mpill[nankai]{Boundary SAD}{$-13.35\%$}\quad\mpill[softgray]{SAD}{$-8.51\%$}\quad\mpill[softgray]{MSE}{$-23.14\%$}\quad\mpill[softgray]{MAE$_{\times1000}$}{$-8.80\%$}
+
+  \vspace{0.38em}
+  \notestrip{nankai}{\scriptsize
+  车轮弧线和车身外沿是这一例最明显的差异：ZIM 的红色轮廓在轮胎附近有局部外扩，和 GT 绿线存在偏移；我们的蓝色轮廓更贴近车轮外轮廓，车身硬边的外溢也更少。}
+\end{frame}
+
+\begin{frame}[t,label=vis-device]{11. 可视化案例二：设备部件}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \centering
+  \includegraphics[width=0.98\linewidth,height=0.55\textheight,keepaspectratio]{pic/final/clean/02_0067_2_clean_comparison.png}
+
+  \vspace{0.36em}
+  \mpill[nankai]{MSE}{$-23.14\%$}\quad\mpill[softgray]{Boundary SAD}{$-13.35\%$}\quad\mpill[softgray]{SAD}{$-8.51\%$}\quad\mpill[softgray]{MAE$_{\times1000}$}{$-8.80\%$}
+
+  \vspace{0.38em}
+  \notestrip{nankai}{\scriptsize
+  设备斜边和下方支架区域更容易暴露边界问题：ZIM 在边缘处有轻微毛刺和背景残留；我们的结果沿斜边更平直，支架附近更干净，主体轮廓也更完整。}
+\end{frame}
+
+\begin{frame}[t,label=vis-balloon]{12. 可视化案例三：热气球}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \centering
+  \includegraphics[width=0.98\linewidth,height=0.55\textheight,keepaspectratio]{pic/final/clean/03_0085_0_clean_comparison.png}
+
+  \vspace{0.36em}
+  \mpill[nankai]{SAD}{$-8.51\%$}\quad\mpill[softgray]{MAE$_{\times1000}$}{$-8.80\%$}\quad\mpill[softgray]{MSE}{$-23.14\%$}\quad\mpill[softgray]{Boundary SAD}{$-13.35\%$}
+
+  \vspace{0.38em}
+  \notestrip{nankai}{\scriptsize
+  热气球的弧形边界和彩色拼接纹理对抠图很敏感。ZIM 在局部弧线处会出现偏移，容易吞掉前景或带入人群背景；我们的蓝色边界更接近 GT，气球布边缘更连续、更稳定。}
+\end{frame}
+
+\begin{frame}[t]{13. RGBA / Composer 是什么}
+  \footnotesize
+  \linespread{0.92}\selectfont
+  \begin{block}{从 alpha 到透明前景}
+    把前面优化得到的 \hilite{软 alpha} 变成可编辑的透明前景，再接到换背景和背景虚化流程中，检查最终合成边缘是否干净。
+  \end{block}
+
+  \vspace{-0.12em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.57\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        >={Latex[length=2.8mm,width=2.3mm]},
+        node distance=3mm,
+        every node/.style={font=\scriptsize},
+        vcard/.style={softcardsh, rounded corners=3pt, line width=1pt, align=center, inner sep=3pt,
+                      minimum width=4.4cm, minimum height=0.7cm},
+        vblue/.style={vcard, draw=accentblue!82!black, fill=accentblue!13},
+        vpurple/.style={vcard, draw=nankai!88!black, fill=nankai!13},
+        vgreen/.style={vcard, draw=softgreen!72!black, fill=softgreen!15},
+        varrow/.style={-{Latex[length=2.8mm,width=2.3mm]}, line width=1.3pt, draw=nankai!80!black}
+      ]
+        \node[vblue] (alpha) {\textbf{1. Soft Alpha}\\[1pt]{\scriptsize 每个像素的前景透明度 $\alpha(x)$}};
+        \node[vpurple, below=of alpha] (rgba) {\textbf{2. RGBA Foreground}\\[1pt]{\scriptsize 主体颜色 $F$ ＋ 透明通道 $\alpha$}};
+        \node[vgreen, below=of rgba] (out) {\textbf{3. Composer Output}\\[1pt]{\scriptsize 透明 PNG / Replace BG / Blur BG}};
+        \draw[varrow] (alpha) -- (rgba);
+        \draw[varrow] (rgba) -- (out);
+      \end{tikzpicture}
+
+      \vspace{0.08em}
+      \ccard{nankai}{0.98cm}{\scriptsize
+      $\mathrm{RGBA}(x)=\bigl(F_R(x),F_G(x),F_B(x),\alpha(x)\bigr)$\\[2pt]
+      $C(x)=\alpha(x)F(x)+\bigl(1-\alpha(x)\bigr)B(x)$}
+
+    \column{0.41\textwidth}
+      \begin{block}{关键概念}
+        \textbf{前景 $F$：}要保留的主体颜色，来自原图。\\
+        \textbf{Alpha：}透明度，不是硬二值 mask。\\
+        \textbf{RGBA：}RGB 存颜色，A 存透明度。
+      \end{block}
+
+      \vspace{-0.1em}
+      \begin{block}{Composer 输出与边界检查}
+        Composer 使用优化后的 alpha 完成透明 PNG、换背景和背景虚化。合成结果会放大边界问题：白边、黑边、漏洞或残影都会直接暴露；该模块不重新预测目标，也不参与 valid706。
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{14. RGBA / Composer 案例一}
+  \small
+  \linespread{0.94}\selectfont
+  \centering
+  \includegraphics[width=0.98\linewidth,height=0.53\textheight,keepaspectratio]{pic/final/clean/04_0100_1_clean_alpha_composer.png}
+
+  \vspace{0.3em}
+  \notestrip{nankai}{\scriptsize
+  \hilite{alpha 即 RGBA 的透明通道}，通过 alpha blending 即可完成\hilite{换背景}与\hilite{背景虚化}。图中车轮和车身边缘在两种合成结果中仍\hilite{保持贴合}，没有明显白边、黑边或缺口，说明边界优化不仅改善指标，也\hilite{提升了最终编辑效果}。}
+\end{frame}
+
+\begin{frame}[t]{15. RGBA / Composer 案例二}
+  \small
+  \linespread{0.94}\selectfont
+  \centering
+  \includegraphics[width=0.98\linewidth,height=0.53\textheight,keepaspectratio]{pic/final/clean/05_0067_2_clean_alpha_composer.png}
+
+  \vspace{0.3em}
+  \notestrip{nankai}{\scriptsize
+  \hilite{设备斜边与下方支架}是最容易暴露 alpha 不稳定的区域；边界偏移会在换背景后表现为毛边、残影或背景漏入。图中 \hilite{RGBA 前景、蓝底替换、虚化背景} 的轮廓基本一致，说明优化后的 alpha 能\hilite{稳定接入后续编辑流程}。}
+\end{frame}
+
+% ===== 队友占位章节：视频 matting 与应用（张竣翔）=====
+\input{sections/video.tex}
+
+\section{参考资料}
+\begin{frame}[t]{参考资料}
+  \footnotesize
+  \linespread{0.94}\selectfont
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      {\color{nankai}\bfseries 目标定位与分割}\par
+      \vspace{0.12em}
+      {\footnotesize
+      \raggedright
+      \begin{itemize}
+        \setlength{\itemsep}{0.16em}
+        \item[\textcolor{nankai}{[1]}] Feichtenhofer \textit{et al.}, ``Segment Anything in Images and Videos,'' 2024.
+        \item[\textcolor{nankai}{[2]}] Feichtenhofer \textit{et al.}, ``SAM 3: Segment Anything with Concepts,'' 2025.
+        \item[\textcolor{nankai}{[3]}] Ren \textit{et al.}, ``Grounded SAM: Assembling Open-World Models for Diverse Visual Tasks,'' 2024.
+        \item[\textcolor{nankai}{[4]}] IDEA Research, ``Grounded-SAM-2,'' GitHub repository, 2024.
+      \end{itemize}}
+    \column{0.48\textwidth}
+      {\color{nankai}\bfseries Matting 与视频}\par
+      \vspace{0.12em}
+      {\footnotesize
+      \raggedright
+      \begin{itemize}
+        \setlength{\itemsep}{0.14em}
+        \item[\textcolor{nankai}{[5]}] Kim \textit{et al.}, ``\textbf{ZIM: Zero-Shot Image Matting for Anything},'' ICCV, 2025.\; {\scriptsize（本工作的精细抠图基座）}
+        \item[\textcolor{nankai}{[6]}] Li, Jain, and Shi, ``Matting Anything,'' 2023.
+        \item[\textcolor{nankai}{[7]}] Yang \textit{et al.}, ``MatAnyone 2: Scaling Video Matting via a Learned Quality Evaluator,'' 2026.
+      \end{itemize}}
+
+      \vspace{0.10em}
+      {\color{nankai}\bfseries 边界优化与应用}\par
+      \vspace{0.12em}
+      {\footnotesize
+      \raggedright
+      \begin{itemize}
+        \setlength{\itemsep}{0.14em}
+        \item[\textcolor{nankai}{[8]}] He, Sun, and Tang, ``Guided Image Filtering,'' ECCV, 2010.
+        \item[\textcolor{nankai}{[9]}] Hugging Face, ``Diffusers Documentation: Inpainting,'' Documentation, 2025.
+      \end{itemize}}
+
+  \end{columns}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,46 @@
+% ============================================================================
+%  队友章节（占位）：视频 matting 与应用   ——   负责人：张竣翔
+% ----------------------------------------------------------------------------
+%  · 本文件由主文件 slides.tex 通过 \input{sections/video.tex} 引入，
+%    继承主文件导言区的全部宏 / 配色 / 字体，无需自带 \documentclass 或 \begin{document}。
+%  · 直接在下面增删 \begin{frame}[t]{标题} ... \end{frame} 即可。
+%  · 可复用样式同 sections/sam.tex 顶部说明：
+%       \hilite{} \tcard{} \ccard{} \notestrip{} \metricchip{} \mpill[] \pill[]
+%     可选 accent：nankai、accentblue、softgreen、softorange、softgray、deepred
+%  · 建议内容：MatAnyone2 视频 matting → 首帧结果驱动的时序一致性
+%             → 边界带时序平滑（EMA / median）→ 视频换背景 / 虚化 demo → 界面
+% ============================================================================
+\section{视频与应用}
+
+\begin{frame}[t]{视频 matting 与应用（本节由 张竣翔 负责 · 占位）}
+  \footnotesize
+  \linespread{0.94}\selectfont
+  \begin{block}{本节预留给视频 matting（MatAnyone2 / 时序平滑 / 应用展示）}
+    张竣翔在 \texttt{sections/video.tex} 内编辑本节；集成时由主文件 \texttt{slides.tex} 自动 \texttt{\textbackslash input} 引入，样式与正文一致。
+  \end{block}
+
+  \vspace{0.2em}
+  \notestrip{softgreen}{\scriptsize
+  \textbf{可直接使用主文件样式}（与第 6--15 页一致）：\texttt{\textbackslash hilite}、\texttt{\textbackslash tcard}、\texttt{\textbackslash notestrip}、\texttt{\textbackslash pill} 等；配色 nankai / accentblue / softgreen / softorange。}
+
+  \vspace{0.08em}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.5\textwidth}
+      \begin{block}{建议内容}
+        \begin{itemize}
+          \setlength{\itemsep}{0.14em}
+          \item MatAnyone2 视频 matting；
+          \item 首帧结果驱动的时序一致性；
+          \item 边界带时序平滑（EMA / median）；
+          \item 视频换背景 / 虚化 demo 与界面。
+        \end{itemize}
+      \end{block}
+    \column{0.5\textwidth}
+      \begin{block}{与本工作的接口}
+        \scriptsize
+        以图像分支（第 6--15 页）的\hilite{首帧 alpha / mask}为输入；输出\hilite{逐帧 alpha 与合成视频}，最终汇入系统 demo。
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% ---- 在此继续添加本节其余幻灯片 ----

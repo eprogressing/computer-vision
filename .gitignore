@@ -1,0 +1,33 @@
+# ---- LaTeX 编译产物 ----
+*.aux
+*.log
+*.nav
+*.snm
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.xdv
+*.synctex.gz
+*.bbl
+*.blg
+slides.pdf
+
+# ---- 备份 / 临时 ----
+*.bak*
+*.bak_*
+.DS_Store
+.vscode/
+
+# ---- 本地工作目录（无需进仓库）----
+render_*
+report/
+prompts/
+papers/
+
+# 第三方模型仓库（仅本地；用到的 3 张图已拷到 pic/ext/）
+external/
+
+# 杂项 / 备份资产
+pic/*.dataless_backup.png
+pic/dtmf.pdf

@@ -1,0 +1,51 @@
+% ============================================================================
+%  队友章节（占位）：上游开放词汇分割   ——   负责人：史傅冠华
+% ----------------------------------------------------------------------------
+%  · 本文件由主文件 slides.tex 通过 \input{sections/sam.tex} 引入，
+%    继承主文件导言区的全部宏 / 配色 / 字体，无需自带 \documentclass 或 \begin{document}。
+%  · 直接在下面增删 \begin{frame}[t]{标题} ... \end{frame} 即可。
+%  · 可直接复用主文件的统一样式（与正文第 6–15 页完全一致）：
+%       \hilite{重点}                         —— 主题色加粗强调
+%       \tcard{accent}{高度}{标题}{正文}       —— 圆角阴影卡片（左对齐）
+%       \ccard{accent}{高度}{居中正文}         —— 居中卡片
+%       \notestrip{accent}{正文}               —— 整条圆角说明框
+%       \metricchip{accent}{标签}{数值}        —— 指标卡
+%       \mpill[accent]{标签}{数值}  /  \pill[accent]{文本}   —— 行内徽章
+%     可选 accent：nankai、accentblue、softgreen、softorange、softgray、deepred
+%  · 建议内容：开放词汇定位动机 → SAM / SAM2 / SAM3 / Grounded-SAM-2 选型
+%             → Prompt Ensemble / Mask Rerank / Auto-prompt → 候选 mask 选择与可视化
+% ============================================================================
+\section{上游分割}
+
+\begin{frame}[t]{开放词汇分割（本节由 史傅冠华 负责 · 占位）}
+  \footnotesize
+  \linespread{0.94}\selectfont
+  \begin{block}{本节预留给上游分割（SAM / SAM2 / SAM3 / Grounded-SAM-2）}
+    史傅冠华在 \texttt{sections/sam.tex} 内编辑本节；集成时由主文件 \texttt{slides.tex} 自动 \texttt{\textbackslash input} 引入，样式与正文一致。
+  \end{block}
+
+  \vspace{0.2em}
+  \notestrip{accentblue}{\scriptsize
+  \textbf{可直接使用主文件样式}（与第 6--15 页一致）：\texttt{\textbackslash hilite}、\texttt{\textbackslash tcard}、\texttt{\textbackslash notestrip}、\texttt{\textbackslash pill} 等；配色 nankai / accentblue / softgreen / softorange。}
+
+  \vspace{0.08em}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.5\textwidth}
+      \begin{block}{建议内容}
+        \begin{itemize}
+          \setlength{\itemsep}{0.14em}
+          \item 开放词汇定位的动机与难点；
+          \item SAM / SAM2 / SAM3 / Grounded-SAM-2 选型与对比；
+          \item Prompt Ensemble、Mask Rerank、Auto-prompt；
+          \item 候选 mask 选择策略与可视化。
+        \end{itemize}
+      \end{block}
+    \column{0.5\textwidth}
+      \begin{block}{与本工作的接口}
+        \scriptsize
+        上游输出 \hilite{bbox / points / mask} 作为 ZIM（第 7 页起）的输入；只要保持\hilite{统一中间接口}，即可无缝集成到主流程。
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% ---- 在此继续添加本节其余幻灯片 ----
