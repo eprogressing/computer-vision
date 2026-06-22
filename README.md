@@ -1,45 +1,38 @@
-# PromptMatte — 计算机视觉大作业幻灯片
+# PromptMatte — 计算机视觉课程大作业（第五组）
 
-> 基于视觉基础模型融合的**文本驱动零训练精细抠图与换背景**系统
-> 作者：梁景铭、史傅冠华、张竣翔
+> 基于视觉基础模型融合的**零训练（training-free）**精细抠图与换背景系统
+> 作者：梁景铭、史傅冠华、张竣翔 · 南开大学计算机学院
 
-## 模块化结构
+## 方法概览
 
-| 文件 | 内容 | 负责人 |
-|------|------|--------|
-| `slides.tex` | 主文件：导言区（宏/配色/字体）+ 引言 + 精细抠图与实验 + 参考资料 | 梁景铭 |
-| `sections/sam.tex` | 上游开放词汇分割（SAM / SAM2 / SAM3 / Grounded-SAM-2、候选选择等） | 史傅冠华 |
-| `sections/video.tex` | 视频 matting 与应用（MatAnyone2、时序平滑、demo） | 张竣翔 |
+**图像主线：** 图像 + official bbox → SAM2 候选掩码 → Prompt Ensemble + IoU 重排序 →
+Guided Filter 修边 → ZIM 软 alpha → PromptMatte-TTA-GF + Box-Support Prior →
+RGBA / 换背景 / 背景虚化。
 
-主文件通过 `\input{sections/sam.tex}` 与 `\input{sections/video.tex}` **自动集成**两节，
-无需改动主文件结构。
+**视频支线：** 复用图像主线首帧 alpha → MatAnyone2 → 双向时序平滑。
 
-## 队友怎么编辑
+核心是一条贯穿空间与时间的「一致性先验」：图像端为翻转等变（TTA-GF），
+视频端为时序一致（双向时序平滑），全程不训练任何模型权重。
 
-只编辑自己的 `sections/*.tex`，在里面增删 `\begin{frame}[t]{标题} ... \end{frame}` 即可。
-导言区的统一样式可直接复用（详见各 section 文件顶部注释、参考正文第 6–15 页）：
+## 仓库结构
 
-- `\hilite{重点}`、`\tcard{accent}{高度}{标题}{正文}`、`\ccard{accent}{高度}{居中正文}`
-- `\notestrip{accent}{正文}`、`\metricchip{accent}{标签}{数值}`、`\mpill[accent]{标签}{数值}`、`\pill[accent]{文本}`
-- 配色 `accent`：`nankai` / `accentblue` / `softgreen` / `softorange` / `softgray` / `deepred`
+| 路径 | 内容 |
+|------|------|
+| `report/` | CVPR 中文模板课程报告（`main.tex`，XeLaTeX；正文 8 页 + 附录），产物见 `report/main.pdf` |
+| `第五组+梁景铭-史傅冠华-张竣翔.pptx` | 答辩 PPT |
+| `code/`（待上传） | 三部分源代码：`sam/`（史傅冠华）、`zim/`（梁景铭）、`video/`（张竣翔） |
 
-## 编译
+## 分工
 
-需要 **XeLaTeX + ctex**（中文楷体）。
+- **梁景铭**：精细抠图与系统整合（ZIM + PromptMatte-TTA-GF + Box-Support Prior）
+- **史傅冠华**：上游开放词汇分割（SAM2 + Prompt Ensemble + IoU 引导重排序）
+- **张竣翔**：视频时序平滑（MatAnyone2 + 双向时序平滑）
 
-```bash
-latexmk -xelatex slides.tex     # 推荐
-# 或
-xelatex slides.tex
-```
+## 编译报告
 
-## 协作流程
+需要 **XeLaTeX + ctex**（中文）。
 
 ```bash
-git clone https://github.com/eprogressing/computer-vision.git
-cd computer-vision
-# 编辑自己的 sections/xxx.tex
-git add sections/xxx.tex
-git commit -m "feat(sam): 添加 Grounded-SAM-2 流程页"
-git push
+cd report
+latexmk -xelatex main.tex      # 产出 main.pdf
 ```

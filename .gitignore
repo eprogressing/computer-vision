@@ -11,6 +11,7 @@
 *.synctex.gz
 *.bbl
 *.blg
+*.brf
 slides.pdf
 
 # ---- 备份 / 临时 ----
@@ -21,7 +22,6 @@ slides.pdf
 
 # ---- 本地工作目录（无需进仓库）----
 render_*
-report/
 prompts/
 papers/
 
