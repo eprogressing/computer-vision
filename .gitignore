@@ -38,3 +38,20 @@ pic/*_page.png
 pic/matanyone2_teaser.jpg
 pic/final/slides/*_16x9.png
 pic/final/slides/*_crop.png
+
+# ---- 实验临时文件（不进仓库）----
+batch_results_*.csv
+experiment_results/
+comparison_results/
+old_results_backup/
+top10_bidirectional_summary.csv
+paper_figures/
+
+# ---- 不属于本项目的脚本 ----
+compare.py
+compose.py
+app.py
+find_temporal_flicker.py
+guided_ema_experiment.py
+quick_eval.py
+inference_*.py
