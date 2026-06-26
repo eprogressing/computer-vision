@@ -1,0 +1,6 @@
+method,display_method,n_ok,SAD,MSE,MAE_x1000,Boundary_SAD,failure_rate,notes
+zim_vitb_bbox_default,ZIM bbox baseline,506,2.3241616546989903,0.0005912467010904962,0.8342146804416368,0.728160034114193,0.0,computed from final_metrics_all over BSP final_holdout506 sample_ids
+zim_vitb_flip_tta_bbox,ZIM bbox + horizontal flip TTA,506,2.116438806115874,0.00044770385089908484,0.7573705165694825,0.6596878134892157,0.0,computed from final_metrics_all over BSP final_holdout506 sample_ids
+zim_vitb_bbox_default_guided_r1,ZIM bbox + guided filter r1,506,2.3021801378533775,0.0005800295447516899,0.8265114457828725,0.6908857918274497,0.0,computed from final_metrics_all over BSP final_holdout506 sample_ids
+zim_vitb_flip_tta_bbox_guided_r1,PromptMatte-TTA-GF,506,2.1009846543782786,0.000440252294544659,0.752010180467644,0.6294268547987985,0.0,computed from final_metrics_all over BSP final_holdout506 sample_ids
+promptmatte_tta_gf_box_support_prior,PromptMatte-TTA-GF+BSP,506,2.1004556301141917,0.00044009934331981583,0.7518108730082926,0.629144825792242,0.0,BSP fast full eval on same final_holdout506 manifest

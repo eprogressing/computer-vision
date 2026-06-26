@@ -1,0 +1,6 @@
+method,display_method,n_ok,SAD,MSE,MAE_x1000,Boundary_SAD,failure_rate,notes
+zim_vitb_bbox_default,ZIM bbox baseline,706,2.3201066981420637,0.0005795364576837008,0.8254798914308504,0.7366231441413377,0.0,valid706 official-prompt subset; local SAD/MSE/MAE/Boundary metrics
+zim_vitb_flip_tta_bbox,ZIM bbox + horizontal flip TTA,706,2.139644727490779,0.0004534709738699304,0.7587811886187822,0.6691997890748485,0.0,valid706 official-prompt subset; local SAD/MSE/MAE/Boundary metrics
+zim_vitb_bbox_default_guided_r1,ZIM bbox + guided filter r1,706,2.297810662759431,0.0005681659373770037,0.8176421160907313,0.6989738599373497,0.0,valid706 official-prompt subset; local SAD/MSE/MAE/Boundary metrics
+zim_vitb_flip_tta_bbox_guided_r1,PromptMatte-TTA-GF,706,2.123826205445501,0.00044581581196763713,0.7532680459431355,0.6385563802047931,0.0,valid706 official-prompt subset; local SAD/MSE/MAE/Boundary metrics
+promptmatte_tta_gf_box_support_prior,PromptMatte-TTA-GF+BSP,706,2.1226581531463364,0.00044541403604227175,0.7528136347766132,0.6382831930481003,0.0,valid706 official-prompt subset; local SAD/MSE/MAE/Boundary metrics

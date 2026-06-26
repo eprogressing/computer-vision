@@ -1,0 +1,25 @@
+split,comparison,left_method,right_method,metric,right_value,left_value,relative_improvement,relative_improvement_percent
+valid706,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,SAD,2.3201066981420637,2.123826205445501,0.08459976985271576,8.459976985271576
+valid706,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,MSE,0.0005795364576837008,0.00044581581196763713,0.2307372451605895,23.07372451605895
+valid706,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,MAE_x1000,0.8254798914308504,0.7532680459431355,0.08747862453989781,8.74786245398978
+valid706,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,Boundary_SAD,0.7366231441413377,0.6385563802047931,0.13313016936341096,13.313016936341096
+valid706,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,SAD,2.3201066981420637,2.1226581531463364,0.08510321751747178,8.510321751747178
+valid706,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,MSE,0.0005795364576837008,0.00044541403604227175,0.2314305163431674,23.143051634316738
+valid706,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,MAE_x1000,0.8254798914308504,0.7528136347766132,0.08802910574633226,8.802910574633225
+valid706,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,Boundary_SAD,0.7366231441413377,0.6382831930481003,0.1335010335683515,13.350103356835149
+valid706,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,SAD,2.123826205445501,2.1226581531463364,0.0005499754622904165,0.054997546229041655
+valid706,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,MSE,0.00044581581196763713,0.00044541403604227175,0.00090121506366523,0.090121506366523
+valid706,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,MAE_x1000,0.7532680459431355,0.7528136347766132,0.0006032529442467975,0.06032529442467975
+valid706,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,Boundary_SAD,0.6385563802047931,0.6382831930481003,0.0004278199469327413,0.04278199469327413
+final_holdout506,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,SAD,2.3241616546989903,2.1009846543782786,0.0960247321306125,9.60247321306125
+final_holdout506,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,MSE,0.0005912467010904962,0.000440252294544659,0.25538308504274604,25.538308504274603
+final_holdout506,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,MAE_x1000,0.8342146804416368,0.752010180467644,0.09854118118668614,9.854118118668614
+final_holdout506,PromptMatte-TTA-GF vs ZIM bbox baseline,zim_vitb_flip_tta_bbox_guided_r1,zim_vitb_bbox_default,Boundary_SAD,0.728160034114193,0.6294268547987985,0.13559269211403996,13.559269211403995
+final_holdout506,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,SAD,2.3241616546989903,2.1004556301141917,0.09625235152318676,9.625235152318675
+final_holdout506,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,MSE,0.0005912467010904962,0.00044009934331981583,0.2556417777755106,25.564177777551063
+final_holdout506,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,MAE_x1000,0.8342146804416368,0.7518108730082926,0.09878009745611196,9.878009745611196
+final_holdout506,PromptMatte-TTA-GF+BSP vs ZIM bbox baseline,promptmatte_tta_gf_box_support_prior,zim_vitb_bbox_default,Boundary_SAD,0.728160034114193,0.629144825792242,0.13598000945273403,13.598000945273403
+final_holdout506,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,SAD,2.1009846543782786,2.1004556301141917,0.0002517982523025671,0.02517982523025671
+final_holdout506,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,MSE,0.000440252294544659,0.00044009934331981583,0.00034741721221769804,0.03474172122176981
+final_holdout506,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,MAE_x1000,0.752010180467644,0.7518108730082926,0.0002650329271173312,0.02650329271173312
+final_holdout506,BSP increment over PromptMatte-TTA-GF,promptmatte_tta_gf_box_support_prior,zim_vitb_flip_tta_bbox_guided_r1,Boundary_SAD,0.6294268547987985,0.629144825792242,0.0004480727258557271,0.04480727258557271
