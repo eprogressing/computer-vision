@@ -36,9 +36,9 @@ the holdout506 split are in `tables/`.
 
 ## Layout
 
-- `code/scripts/box_prior/box_prior_pipeline.py` — Box-Support Prior and its evaluation
-- `code/scripts/final_claim/final_claim_pipeline.py` — metric computation, statistics and ablation
-- `code/scripts/official_metrics.py` — metric helpers
+- `code/box_prior_pipeline.py` — Box-Support Prior and its evaluation
+- `code/final_claim_pipeline.py` — metric computation, statistics and ablation
+- `code/official_metrics.py` — metric helpers
 - `tables/` — leaderboards and ablation tables (CSV)
 
 Model weights, datasets and image outputs are not included.
