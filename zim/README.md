@@ -1,101 +1,47 @@
-# Computer Vision Final Project: PromptMatte
+# PromptMatte (ZIM-based)
 
-This is the final PPT/submission package for the PromptMatte computer vision project.
+Inference-only refinement on top of ZIM ViT-B box-prompt matting, evaluated on the
+MicroMat official-prompt valid subset (706 images).
 
-## Final method
+## Method
 
-`PromptMatte-TTA-GF+BSP`
+PromptMatte-TTA-GF + BSP
 
-- `PromptMatte-TTA-GF`: ZIM ViT-B official bbox prompt + horizontal flip TTA + guided filter r1.
-- `BSP`: Box-Support Prior, a no-GT spatial support prior derived from the official bbox prompt.
-- `Composer`: application-only showcase for RGBA export, background replacement, blur background, and alpha-edge visualization.
+- **TTA-GF**: ZIM ViT-B with the official bbox prompt, horizontal-flip test-time
+  augmentation, then a guided filter (r = 1) for boundary refinement.
 
+  ```
+  alpha0     = ZIM(I, bbox)
+  alpha_flip = unflip(ZIM(flip(I), flip(bbox)))
+  alpha_tta  = mean(alpha0, alpha_flip)
+  alpha      = guided_filter(alpha_tta, I)
+  ```
 
-## Important visual note
+- **BSP** (Box-Support Prior): a box-derived spatial support prior that needs no ground
+  truth, giving a small but consistent extra gain.
 
-For PPT, use `visuals/PPT_READY_SAFE_TOP6/` first. `visuals/PPT_SAFE_USE_THESE/` is only a candidate pool. Earlier auto-selected Composer examples may include wrong or tiny-object cutouts and should not be used as proof of method quality.
+## Results (valid706)
 
-## What to use for PPT
+| Method | SAD | MSE | MAE×1000 | Boundary SAD |
+| --- | --- | --- | --- | --- |
+| ZIM bbox (baseline) | 2.3201 | 0.000580 | 0.8255 | 0.7366 |
+| + flip TTA | 2.1396 | 0.000453 | 0.7588 | 0.6692 |
+| + guided filter (r1) | 2.2978 | 0.000568 | 0.8176 | 0.6990 |
+| PromptMatte-TTA-GF | 2.1238 | 0.000446 | 0.7533 | 0.6386 |
+| PromptMatte-TTA-GF + BSP | **2.1227** | **0.000445** | **0.7528** | **0.6383** |
 
-- Main table: `tables/final_leaderboard_valid706.csv`
-- Main table image: `ppt_assets/final_leaderboard_table.png`
-- Bar chart: `ppt_assets/final_leaderboard_bar_chart.png`
-- Method diagram: `ppt_assets/method_diagram.png`
-- Ablation table: `ppt_assets/ablation_table.png`
-- Claim safety: `ppt_assets/claim_safety.png`
-- PPT-ready safe cases: `visuals/PPT_READY_SAFE_TOP6/`
-- Candidate pool, inspect manually: `visuals/PPT_SAFE_USE_THESE/`
-- ZIM vs PromptMatte visual cases: `visuals/baseline_vs_ttagf/`
-- Flip TTA vs guided smoothing cases: `visuals/smoothing_effect/`
-- PromptMatte-TTA-GF vs BSP cases: `visuals/ttagf_vs_bsp/`
-- Failure cases: `visuals/failure_cases/`
-- Composer showcase: `visuals/composer_showcase/`
-- Visual gallery: `visuals/index.html`
+Relative to the reproduced ZIM bbox baseline, PromptMatte-TTA-GF lowers SAD by ~8.5%,
+MSE by ~23% and boundary SAD by ~13%; BSP adds a further small gain. Full numbers and
+the holdout506 split are in `tables/`.
 
-## Final valid706 leaderboard
+## Layout
 
-| display_method | n_ok | SAD | MSE | MAE_x1000 | Boundary_SAD |
-| --- | --- | --- | --- | --- | --- |
-| ZIM bbox baseline | 706 | 2.3201066981420637 | 0.0005795364576837008 | 0.8254798914308504 | 0.7366231441413377 |
-| ZIM bbox + horizontal flip TTA | 706 | 2.139644727490779 | 0.0004534709738699304 | 0.7587811886187822 | 0.6691997890748485 |
-| ZIM bbox + guided filter r1 | 706 | 2.297810662759431 | 0.0005681659373770037 | 0.8176421160907313 | 0.6989738599373497 |
-| PromptMatte-TTA-GF | 706 | 2.123826205445501 | 0.00044581581196763713 | 0.7532680459431355 | 0.6385563802047931 |
-| PromptMatte-TTA-GF+BSP | 706 | 2.1226581531463364 | 0.00044541403604227175 | 0.7528136347766132 | 0.6382831930481003 |
+- `code/scripts/box_prior/` — Box-Support Prior and its evaluation
+- `code/scripts/final_claim/` — metric computation, statistics and reporting pipeline
+- `code/scripts/official_metrics.py` — metric helpers
+- `tables/` — leaderboards and ablation tables (CSV)
+- `visuals/examples/` — representative comparison cases
+- `visuals/failure_cases/` — failure examples
+- `ppt_assets/method_diagram.png` — method diagram
 
-
-## Improvement summary
-
-| comparison | metric | relative_improvement_percent |
-| --- | --- | --- |
-| PromptMatte-TTA-GF vs ZIM bbox baseline | SAD | 8.459976985271576 |
-| PromptMatte-TTA-GF vs ZIM bbox baseline | MSE | 23.07372451605895 |
-| PromptMatte-TTA-GF vs ZIM bbox baseline | MAE_x1000 | 8.74786245398978 |
-| PromptMatte-TTA-GF vs ZIM bbox baseline | Boundary_SAD | 13.313016936341096 |
-| PromptMatte-TTA-GF+BSP vs ZIM bbox baseline | SAD | 8.510321751747178 |
-| PromptMatte-TTA-GF+BSP vs ZIM bbox baseline | MSE | 23.143051634316738 |
-| PromptMatte-TTA-GF+BSP vs ZIM bbox baseline | MAE_x1000 | 8.802910574633225 |
-| PromptMatte-TTA-GF+BSP vs ZIM bbox baseline | Boundary_SAD | 13.350103356835149 |
-| BSP increment over PromptMatte-TTA-GF | SAD | 0.054997546229041655 |
-| BSP increment over PromptMatte-TTA-GF | MSE | 0.090121506366523 |
-| BSP increment over PromptMatte-TTA-GF | MAE_x1000 | 0.06032529442467975 |
-| BSP increment over PromptMatte-TTA-GF | Boundary_SAD | 0.04278199469327413 |
-
-
-## How to explain the visual results
-
-1. ZIM baseline gives the starting alpha matte from official bbox prompt.
-2. Horizontal flip TTA stabilizes prediction by averaging original and flipped inference.
-3. Guided filtering improves local boundary consistency using the image as guidance.
-4. BSP provides a conservative box-derived support prior, giving a small but consistent metric gain.
-5. Composer shows the predicted alpha is usable as an editing primitive, not just a benchmark mask.
-
-## Claim safety
-
-- This is a valid706 official-prompt subset result, not full MicroMat-3K.
-- Composer images are demos and are not benchmark metrics.
-- Approximate Grad/Conn must not be reported as official full metrics.
-- SAM2 teammate results are not included unless an aligned 706-row submission is provided.
-
-## Reproduction
-
-Remote source directory:
-
-`/home/lpy/anisorisk/computer_vison`
-
-Final source runs:
-
-- `runs/protocol_repair_final_claim_20260602_174358`
-- `runs/box_prior_fast_eval_20260604_092617`
-- `runs/promptmatte_composer_showcase_20260604`
-- `runs/final_submission_package_20260604_161922`
-
-The package was generated by:
-
-```bash
-cd /home/lpy/anisorisk/computer_vison
-python3 scripts/final_delivery/make_final_delivery.py
-```
-
-## Visual cleanup note
-
-Earlier auto-selected visual examples were moved to `visuals/DO_NOT_USE_auto_generated_old/` because several cutouts were wrong or too tiny for PPT. Use `visuals/PPT_READY_SAFE_TOP6/` for presentation.
+Model weights, datasets and full alpha outputs are not included.

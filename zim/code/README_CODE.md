@@ -1,11 +1,11 @@
-# Code Included
+# Code
 
-This folder contains the scripts needed to reproduce the final packaging and the main post-processing logic:
+- `scripts/box_prior/` — Box-Support Prior implementation and its full evaluation
+  (`box_prior_pipeline.py`), plus the staged helpers `00_init` … `04_tests`,
+  a quick parameter probe (`quick_probe.py`) and the Composer demo (`composer_demo.py`).
+- `scripts/final_claim/` — the metric pipeline: dataset/protocol preparation,
+  metric computation, statistics, ablation and failure analysis. `final_claim_pipeline.py`
+  holds the logic; `00`…`11` are thin stage entry points.
+- `scripts/official_metrics.py` — SAD / MSE / MAE / boundary metric helpers.
 
-- `scripts/final_claim`: final metric consolidation for ZIM baseline and PromptMatte-TTA-GF.
-- `scripts/box_prior`: Box-Support Prior implementation and full evaluation script.
-- `scripts/final_submission`: final leaderboard / claim-safety / SAM2 alignment package generation.
-- `scripts/final_delivery`: final PPT/submission delivery packaging.
-- `scripts/official_metrics.py`: local metric helper used by previous runs.
-
-Large model weights, datasets, and generated alpha outputs are intentionally not copied into this folder.
+Model weights, datasets and generated alpha outputs are not included.
