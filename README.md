@@ -46,7 +46,7 @@ Box-Support Prior；视频端沿时间轴推广为双向时序平滑。图像分
 | | + PromptMatte-TTA-GF | 2.124 | 0.000446 | 0.753 | 0.639 |
 | | **+ Box-Support Prior（最终）** | **2.123** | **0.000445** | **0.753** | **0.638** |
 
-相对 ZIM 基线，最终方法在 SAD / MSE / MAE / Boundary-SAD 上分别下降 **8.5% / 23.1% / 8.8% / 13.4%**；
+相对 ZIM 基线，最终方法在 SAD / MSE / MAE / Boundary-SAD 上分别下降 **8.5% / 23.3% / 8.7% / 13.4%**；
 即便上游分割优化到最优（SAD 2.774）也不及 ZIM 基线（2.320），印证了精细抠图基座不可替代。
 
 **视频：20 段（YouTubeMatte + VideoMatt 各 10）；TC 越高越好，SAD/MSE 变化越低越好**
